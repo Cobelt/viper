@@ -1,0 +1,15 @@
+type User {
+    id: ID!
+
+    usename: String!
+
+    hash: String!
+    salt: String!
+
+#    firstname: String,
+#    lastname: String,
+#
+#    email: String,
+#
+#    birthdate: DateTime,
+}
