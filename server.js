@@ -1,22 +1,30 @@
 import express from 'express';
-import cors from 'cors';
 import graphqlHTTP from 'express-graphql';
 import session from 'express-session';
-import { makeExecutableSchema } from 'graphql-tools';
+import moment from 'moment';
+import cors from 'cors';
+
+import env from 'dotenv';
+env.config();
 
 import pkg from './package.json';
 import schema from './src/terrarium';
 
-
 const server = () => {
+    console.log('Creating API...');
+    const timeStart = moment();
+
     const app = express();
 
+    const sessionSecretKey = process.env.SESSION_SECRET_KEY || 'co123be456lt789di!$erk?';
+    const sessionMaxAge = parseInt(process.env.SESSION_MAX_AGE) || 172800000; // 60000 = 1 minute, 172800000 = 2j
+
     const sessionConfig = {
-        secret: 'cobeltdierkarytteckinoa',
+        secret: sessionSecretKey,
         resave: true,
         saveUninitialized: true,
         cookie: {
-            maxAge: 60000
+            maxAge: sessionMaxAge
         },
     };
     app.use(session(sessionConfig));
@@ -24,38 +32,16 @@ const server = () => {
     app.use(cors());
 
     app.use('/graphql', graphqlHTTP({
-        schema,
-        graphiql: true
+        schema: schema(),
+        graphiql: true,
     }));
 
-    app.listen(4000, () => console.log('Express GraphQL Server Now Running On localhost:4000/graphql'));
+    const HOST = process.env.HOST || 'viper';
+    const PORT = process.env.PORT || 4000;
+
+    const timeEnd = moment();
+    console.log('Done in', timeEnd - timeStart, 'ms !');
+    app.listen(4000, () => console.log(`Express GraphQL Server Now Running On ${HOST}:${PORT}/graphql`));
 };
 
-//     const typeDefs = [`
-//     type Query {
-//         user(_id: String): User
-//         users: [User]
-//     }
-//
-//     type User {
-//         _id: String!
-//         username: String!
-//         hash: String!
-//         salt: String!
-//         firstname: String
-//         lastname: String
-//         lang: String
-//     }
-//
-//     schema {
-//         query: Query
-//     }
-// `];
-
-// const schema = typeDefs;
-
-// Root resolver
-// const root = {
-//     name: () => pkg.name,
-//     version: () => pkg.version,
-// };
+server();
